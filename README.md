@@ -65,7 +65,7 @@ You can modify the following parameters directly in the script to suit your requ
 
 ## Author Information
 - **Author**: Nic Cravino
-- **Email**: [spidernic@me.com](mailto:spidernic@me.com) / [ncravino@mac.com](mailto:ncravino@mac.com)
+- **Email**: [spidernic@me.com](mailto:spidernic@me.com) 
 - **LinkedIn**: [Nic Cravino](https://www.linkedin.com/in/nic-cravino)
 - **Date**: October 30, 2024
 

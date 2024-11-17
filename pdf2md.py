@@ -11,7 +11,7 @@ A Python script to convert PDFs to images and process each image with a multimod
 
 ## Author Information
 - **Author**: Nic Cravino
-- **Email**: spidernic@me.com / ncravino@mac.com
+- **Email**: spidernic@me.com 
 - **LinkedIn**: [Nic Cravino](https://www.linkedin.com/in/nic-cravino)
 - **Date**: October 30, 2024
 
