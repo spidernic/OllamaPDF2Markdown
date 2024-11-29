@@ -5,6 +5,9 @@ This Python application converts PDF files into markdown by first converting pag
 
 The application comes in two versions:
 1. **GUI Version**: A user-friendly interface built with Streamlit
+
+<img src="images/screen.gif" width="600" alt="PDF to Markdown Converter Demo">
+
 2. **Command Line Version**: A script-based version for automation and batch processing
 
 ```mermaid
