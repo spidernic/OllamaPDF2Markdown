@@ -71,7 +71,7 @@ def format_elapsed_time(seconds):
     tdelta = timedelta(seconds=seconds)
     return str(tdelta)
 
-def process_images_with_model(image_files: list, model: str, progress_bar) -> str:
+def process_images_with_model(image_files: list, model: str, progress_bar, status_text, progress_text, time_text) -> str:
     """
     Process each image with a multimodal model and return the combined content.
     Update the progress bar as images are processed.
@@ -105,7 +105,9 @@ def process_images_with_model(image_files: list, model: str, progress_bar) -> st
         
         elapsed_time = time.time() - start_time
         formatted_elapsed_time = format_elapsed_time(elapsed_time)
-        st.write(f"{formatted_elapsed_time} - Processed {image}")
+        status_text.write(f"Processed {image} in {formatted_elapsed_time}")
+        progress_text.write(f"Progress: {(index + 1) / total_images * 100:.2f}%")
+        time_text.write(f"Time elapsed: {formatted_elapsed_time}")
         
         # Update progress bar
         progress_bar.progress((index + 1) / total_images)  # Corrected here
@@ -113,36 +115,140 @@ def process_images_with_model(image_files: list, model: str, progress_bar) -> st
     return combined_content
 
 def main():
-    st.title("PDF to Markdown Converter")
-    
-    src_directory = st.text_input("Source Directory", "/Users/spider/Desktop/inputpdf")
-    tgt_directory = st.text_input("Target Directory (default: ./temp)", "./temp")
-    output_directory = st.text_input("Output Directory (default: ./output)", "/Users/spider/Desktop/outputmd")
-    
-    if st.button("Start Conversion"):
-        if not os.path.exists(src_directory):
-            st.error("Source directory does not exist.")
-            return
-        
-        # Step 1: Convert PDFs to images
-        image_files = convert_pdf_to_images(src_directory, tgt_directory)
-        
-        if not image_files:
-            st.info("No PDF files found in the source directory.")
-            return
-        
-        model_name = 'llama3.2-vision:11b-instruct-q8_0'
-        # Step 2: Process images with the model
-        progress_bar = st.progress(0)  # Initialize progress bar
-        combined_content = process_images_with_model(image_files, model_name, progress_bar)
-        
-        # Step 3: Save the combined content to a markdown file
-        if combined_content:
-            datetime_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_filename = os.path.join(output_directory, f"combined_output_{datetime_str}.md")
-            save_output(output_filename, combined_content)
-        
-        st.success("Conversion completed successfully.")
-    
+    # Page configuration
+    st.set_page_config(
+        page_title="PDF to Markdown Converter",
+        page_icon="📄",
+        layout="wide"
+    )
+
+    # Header section with styling
+    st.markdown("""
+    <h1 style='text-align: center;'>PDF to Markdown Converter 📄</h1>
+    <p style='text-align: center;'>Convert your PDF documents to well-formatted Markdown with AI-powered content extraction</p>
+    """, unsafe_allow_html=True)
+
+    # File upload section
+    st.subheader("📤 Upload PDF Files")
+    uploaded_files = st.file_uploader("Drop your PDF files here", type=['pdf'], accept_multiple_files=True)
+
+    # Settings section in an expander
+    with st.expander("⚙️ Advanced Settings"):
+        col1, col2 = st.columns(2)
+        with col1:
+            model_name = st.selectbox(
+                "Select Model",
+                ["llama3.2-vision:11b-instruct-q8_0", "llava", "bakllava"],
+                index=0
+            )
+            image_format = st.selectbox(
+                "Image Format",
+                ["jpeg", "png"],
+                index=0
+            )
+        with col2:
+            image_quality = st.slider("Image Quality", 0, 100, 75)
+            output_directory = st.text_input("Output Directory", "/Users/spider/Desktop/outputmd")
+
+    # Start conversion button
+    if st.button("🚀 Start Conversion", type="primary"):
+        try:
+            # Validate inputs
+            if not uploaded_files:
+                st.error("Please upload at least one PDF file.")
+                return
+
+            # Create temporary and output directories
+            temp_dir = os.path.join(os.getcwd(), "temp")
+            os.makedirs(temp_dir, exist_ok=True)
+            os.makedirs(output_directory, exist_ok=True)
+
+            # Process uploaded files
+            st.info("Processing uploaded files...")
+            pdf_paths = []
+            for uploaded_file in uploaded_files:
+                temp_path = os.path.join(temp_dir, uploaded_file.name)
+                with open(temp_path, "wb") as f:
+                    f.write(uploaded_file.getvalue())
+                pdf_paths.append(temp_path)
+
+            # Convert PDFs to images with progress bar
+            with st.spinner("Converting PDFs to images..."):
+                image_files = []
+                for pdf_path in pdf_paths:
+                    images = convert_from_path(
+                        pdf_path,
+                        output_folder=temp_dir,
+                        fmt=image_format,
+                        output_file=os.path.splitext(os.path.basename(pdf_path))[0],
+                        paths_only=True
+                    )
+                    image_files.extend(images)
+
+            if not image_files:
+                st.warning("No pages found in the uploaded PDF files.")
+                return
+
+            # Display number of pages to process
+            st.info(f"Found {len(image_files)} pages to process")
+
+            # Process images with the model
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            # Create two columns for progress tracking
+            prog_col1, prog_col2 = st.columns(2)
+            with prog_col1:
+                progress_text = st.empty()
+            with prog_col2:
+                time_text = st.empty()
+
+            combined_content = process_images_with_model(
+                image_files,
+                model_name,
+                progress_bar,
+                status_text,
+                progress_text,
+                time_text
+            )
+
+            # Save the combined content
+            if combined_content:
+                datetime_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+                output_filename = os.path.join(output_directory, f"combined_output_{datetime_str}.md")
+                save_output(output_filename, combined_content)
+
+                # Show preview of the generated markdown
+                with st.expander("📝 Preview Generated Markdown"):
+                    st.markdown(combined_content)
+
+                # Add download button for the generated file
+                with open(output_filename, 'r') as f:
+                    st.download_button(
+                        label="📥 Download Markdown File",
+                        data=f.read(),
+                        file_name=f"combined_output_{datetime_str}.md",
+                        mime="text/markdown"
+                    )
+
+            # Cleanup temporary files
+            try:
+                for file in os.listdir(temp_dir):
+                    file_path = os.path.join(temp_dir, file)
+                    try:
+                        if os.path.isfile(file_path):
+                            os.remove(file_path)
+                    except Exception as e:
+                        st.warning(f"Error removing temporary file {file}: {str(e)}")
+                os.rmdir(temp_dir)
+            except Exception as e:
+                st.warning(f"Error cleaning up temporary directory: {str(e)}")
+
+            st.success("✅ Conversion completed successfully!")
+
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
+            st.exception(e)
+
 if __name__ == "__main__":
     main()
