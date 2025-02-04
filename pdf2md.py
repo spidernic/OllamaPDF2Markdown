@@ -30,6 +30,11 @@ from pdf2image import convert_from_path
 import os
 from datetime import datetime
 import time
+import gc
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def convert_pdf_to_images(src_directory: str, tgt_directory: str = "./temp", fmt: str = "jpeg"):
     """
@@ -62,33 +67,58 @@ def save_output(filename: str, content: str):
 def process_images_with_model(image_files: list, model: str) -> str:
     """
     Process each image with a multimodal model and return the combined content.
+    Memory-efficient version with proper cleanup.
     """
     combined_content = ""
-    for image in sorted(image_files):
+    total_images = len(image_files)
+    
+    for idx, image in enumerate(sorted(image_files), 1):
         start_time = time.time()
         image_path = os.path.abspath(image)
-        with open(image_path, "rb") as image_file:
-            response = ollama.chat(
-                model=model,
-                messages=[{
-                    'role': 'user',
-                    'content': 'message="Extract the content of this image as a markdown document. Do not wrap in a markdown code block. Ensure the order of content is preserved in the final output. Tables should be returned as a markdown table."',
-                    'images': [image_file.read()]
-                }]
-            )
+        
+        try:
+            logging.info(f"Processing image {idx}/{total_images}: {image}")
+            
+            # Read image in a controlled block
+            with open(image_path, "rb") as image_file:
+                image_data = image_file.read()
+                response = ollama.chat(
+                    model=model,
+                    messages=[{
+                        'role': 'user',
+                        'content': 'message="Extract the content of this image as a markdown document. Do not wrap in a markdown code block. Ensure the order of content is preserved in the final output. Tables should be returned as a markdown table."',
+                        'images': [image_data]
+                    }]
+                )
 
-        # Debugging: Print the response to check its structure
-        print("API response:", response)
+            # Clear the image data from memory
+            del image_data
+            
+            # Extract content if response is in the expected format
+            if isinstance(response, dict) and 'message' in response:
+                content = response['message']['content']
+                combined_content += content + "\n\n"
+                
+                # Clear response data
+                del content
+                del response
+            else:
+                logging.error(f"Unexpected response format for image {image}: {response}")
+                continue
 
-        # Extract content if response is in the expected format
-        if isinstance(response, dict) and 'message' in response:
-            combined_content += response['message']['content'] + "\n\n"
-        else:
-            print("Unexpected response format:", response)
-            break
-
-        print(f"{time.time() - start_time} seconds - Processed {image}")
-    
+            process_time = time.time() - start_time
+            logging.info(f"Processed {image} in {process_time:.2f} seconds")
+            
+            # Force garbage collection after each image
+            gc.collect()
+            
+            # Add a small delay between processing to allow system cleanup
+            time.sleep(1)
+            
+        except Exception as e:
+            logging.error(f"Error processing image {image}: {str(e)}")
+            continue
+            
     return combined_content
 
 def main():
@@ -97,20 +127,29 @@ def main():
     output_directory = "./output"
     model_name = 'llama3.2-vision:11b-instruct-q8_0'
 
-    # Step 1: Convert PDFs to images
-    convert_pdf_to_images(src_directory, tgt_directory)
+    try:
+        # Step 1: Convert PDFs to images
+        logging.info("Starting PDF to image conversion...")
+        convert_pdf_to_images(src_directory, tgt_directory)
+        gc.collect()  # Cleanup after conversion
 
-    # Step 2: Process images with the model
-    image_files = [os.path.join(tgt_directory, file) for file in os.listdir(tgt_directory) if file.endswith(".jpg")]
-    combined_content = process_images_with_model(image_files, model_name)
+        # Step 2: Process images with the model
+        logging.info("Starting image processing...")
+        image_files = [os.path.join(tgt_directory, file) for file in os.listdir(tgt_directory) if file.endswith(".jpg")]
+        combined_content = process_images_with_model(image_files, model_name)
 
-    # Step 3: Save the combined content to a markdown file
-    if combined_content:
-        datetime_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_filename = os.path.join(output_directory, f"combined_output_{datetime_str}.md")
-        save_output(output_filename, combined_content)
+        # Step 3: Save the combined content to a markdown file
+        if combined_content:
+            datetime_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_filename = os.path.join(output_directory, f"combined_output_{datetime_str}.md")
+            save_output(output_filename, combined_content)
+            logging.info(f"Output saved to {output_filename}")
 
-    print("******************** Done ********************")
+        logging.info("******************** Done ********************")
+        
+    except Exception as e:
+        logging.error(f"An error occurred during execution: {str(e)}")
+        raise
 
 if __name__ == "__main__":
     main()

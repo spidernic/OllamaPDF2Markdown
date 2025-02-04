@@ -1,5 +1,36 @@
 # PDF-to-Markdown Extractor with Multimodal Model Processing
 
+<details>
+<summary>Update 4th February 2025 - Memory Management Improvements</summary>
+
+### Memory Management Improvements:
+- Added explicit garbage collection (`gc.collect()`) after processing each image
+- Properly deleting large objects ([del](cci:1://file:///Users/spider/Desktop/GITHUB/pdf-to-markdown/pdf2md.py:66:0-121:27) statements) after use
+- Added controlled memory blocks with proper cleanup
+- Introduced a small delay between processing to allow system cleanup
+
+### Better Resource Handling:
+- Image data is now read in a controlled block and cleared from memory after use
+- Response data is explicitly cleared after processing
+
+### Progress Tracking and Logging:
+- Added comprehensive logging to track progress and identify issues
+- Shows progress (x/total images) during processing
+- Logs processing time for each image
+- Better error handling and reporting
+
+### Error Handling:
+- Added try-except blocks to handle errors gracefully
+- Errors are logged but won't stop the entire process
+- Main function has error handling to catch and log any unexpected issues
+
+These changes help prevent memory buildup and provide better visibility into where the script might be stalling. The script now:
+- Cleans up memory after each image
+- Shows detailed progress information
+- Handles errors more gracefully
+- Provides better debugging information if something goes wrong
+</details>
+
 ## Overview
 This Python application converts PDF files into markdown by first converting pages into images and then extracting content from those images using a multimodal model. The extracted content is presented in markdown format, making it suitable for review and further editing. The tool is ideal for extracting tabular and textual information from large PDF files, producing a consolidated, structured markdown report that preserves the original document's order and format.
 
