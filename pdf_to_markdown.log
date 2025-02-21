@@ -1,0 +1,26 @@
+2025-02-20 21:49:29,595 - INFO - Created temporary directory: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_6vwn2r92
+2025-02-20 21:51:35,081 - INFO - Created temporary directory: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_wkwds7ih
+2025-02-20 21:51:47,387 - INFO - Created temporary directory: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_2q_tl5p4
+2025-02-20 21:51:47,389 - INFO - Starting PDF processing
+2025-02-20 21:51:47,391 - INFO - Saved uploaded file: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_2q_tl5p4/b.pdf
+2025-02-20 21:51:47,525 - INFO - Found 2 pages to process
+2025-02-20 21:51:47,526 - INFO - Processing image 1/2: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_2q_tl5p4/b0001-1.jpg
+2025-02-20 21:51:47,553 - INFO - HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 404 Not Found"
+2025-02-20 21:51:47,553 - ERROR - Error processing image /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_2q_tl5p4/b0001-1.jpg: model "llama3.2-vision:11b-instruct-q8_0" not found, try pulling it first
+2025-02-20 21:51:47,554 - INFO - Processing image 2/2: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_2q_tl5p4/b0001-2.jpg
+2025-02-20 21:51:47,562 - INFO - HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 404 Not Found"
+2025-02-20 21:51:47,562 - ERROR - Error processing image /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_2q_tl5p4/b0001-2.jpg: model "llama3.2-vision:11b-instruct-q8_0" not found, try pulling it first
+2025-02-20 21:51:47,563 - INFO - Cleaned up temporary directory: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_2q_tl5p4
+2025-02-20 21:55:53,300 - INFO - Created temporary directory: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_z1ivt25k
+2025-02-20 21:56:00,634 - INFO - Created temporary directory: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_gqfia17q
+2025-02-20 21:56:02,253 - INFO - Created temporary directory: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_3cslij9f
+2025-02-20 21:56:02,256 - INFO - Starting PDF processing
+2025-02-20 21:56:02,256 - INFO - Saved uploaded file: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_3cslij9f/b.pdf
+2025-02-20 21:56:02,388 - INFO - Found 2 pages to process
+2025-02-20 21:56:02,388 - INFO - Processing image 1/2: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_3cslij9f/b0001-1.jpg
+2025-02-20 21:56:32,269 - INFO - HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2025-02-20 21:56:33,296 - INFO - Processing image 2/2: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_3cslij9f/b0001-2.jpg
+2025-02-20 21:56:52,750 - INFO - HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2025-02-20 21:56:53,777 - INFO - Conversion completed. Output saved to: /Users/spider/Desktop/outputmd/combined_output_20250220_215653.md
+2025-02-20 21:56:53,778 - INFO - Cleaned up temporary directory: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_3cslij9f
+2025-02-20 21:56:58,792 - INFO - Created temporary directory: /var/folders/fv/2kybkyz531d1pbj7s33bc5_00000gn/T/pdf_to_md_at_5wlj3
