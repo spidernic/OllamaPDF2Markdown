@@ -65,7 +65,7 @@ def save_output(filename: str, content: str):
     with open(filename, "a") as f:
         f.write(content)
 
-def process_images_with_model(image_files: list, model: str) -> str:
+def process_images_with_model(image_files: list, model: str, output_filename: str = None) -> str:
     """
     Process each image with a multimodal model and return the combined content.
     Memory-efficient version with proper cleanup.
@@ -78,11 +78,15 @@ def process_images_with_model(image_files: list, model: str) -> str:
         image_path = os.path.abspath(image)
         
         try:
+            print(f"Processing image {idx}/{total_images}: {image}")
             logging.info(f"Processing image {idx}/{total_images}: {image}")
             
             # Read image in a controlled block
             with open(image_path, "rb") as image_file:
                 image_data = image_file.read()
+            logging.info("Sending image to ollama...")
+            print("Sending image to ollama...")
+            try:
                 response = ollama.chat(
                     model=model,
                     messages=[{
@@ -91,11 +95,18 @@ def process_images_with_model(image_files: list, model: str) -> str:
                         'images': [image_data]
                     }]
                 )
+                print("Received response from ollama.")
+                logging.info("Received response from ollama.")
+            except Exception as e:
+                logging.error(f"Error during ollama.chat: {e}")
+                continue
 
             # Clear the image data from memory
             del image_data
             
             # Extract content if response is in the expected format
+            print("Extracting content...")
+            logging.info("Extracting content...")
             if isinstance(response, dict) and 'message' in response:
                 content = response['message']['content']
                 combined_content += content + "\n\n"
@@ -115,7 +126,12 @@ def process_images_with_model(image_files: list, model: str) -> str:
             
             # Add a small delay between processing to allow system cleanup
             time.sleep(1)
-            
+
+            # I want to append the combined content to a file every 5 images
+            if idx % 5 == 0 and output_filename:
+                print(f"Saving intermediate results after image {idx}...")
+                save_output(output_filename, combined_content)
+                combined_content = ""
         except Exception as e:
             logging.error(f"Error processing image {image}: {str(e)}")
             continue
@@ -126,28 +142,46 @@ def main():
     src_directory = "./data"
     tgt_directory = "./temp"
     output_directory = "./output"
-    model_name = 'llama3.2-vision'
+    # model_name = 'llama3.2-vision'
+    model_name = 'mistral-small3.1:24b-instruct-2503-fp16'
 
     try:
         # Step 1: Convert PDFs to images
+        print("Starting PDF to image conversion...")
         logging.info("Starting PDF to image conversion...")
         convert_pdf_to_images(src_directory, tgt_directory)
         gc.collect()  # Cleanup after conversion
 
         # Step 2: Process images with the model
+        print("Starting image processing...")
         logging.info("Starting image processing...")
-        image_files = [os.path.join(tgt_directory, file) for file in os.listdir(tgt_directory) if file.endswith(".jpg")]
-        combined_content = process_images_with_model(image_files, model_name)
+        # Get all files in the target directory
+        all_files = os.listdir(tgt_directory)
+        
+        # Filter only JPG files
+        jpg_files = [file for file in all_files if file.endswith(".jpg")]
+        
+        # Create full paths
+        image_files = []
+        for file in jpg_files:
+            full_path = os.path.join(tgt_directory, file)
+            image_files.append(full_path)
+            
+        print(f"Found {len(image_files)} images to process")
+        
+        # Create output filename first so it can be passed to process_images_with_model
+        datetime_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_filename = os.path.join(output_directory, f"combined_output_{datetime_str}.md")
+        
+        combined_content = process_images_with_model(image_files, model_name, output_filename)
 
         # Step 3: Save the combined content to a markdown file
         if combined_content:
-            datetime_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_filename = os.path.join(output_directory, f"combined_output_{datetime_str}.md")
+            # Using the same output_filename that was passed to process_images_with_model
             save_output(output_filename, combined_content)
-            logging.info(f"Output saved to {output_filename}")
+            logging.info(f"Final output saved to {output_filename}")
 
         logging.info("******************** Done ********************")
-        
     except Exception as e:
         logging.error(f"An error occurred during execution: {str(e)}")
         raise

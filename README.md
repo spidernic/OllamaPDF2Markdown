@@ -1,6 +1,30 @@
 # PDF-to-Markdown Extractor with Multimodal Model Processing
 
 <details>
+<summary>Update 15th April 2025 - Mistral Integration and Command-Line Improvements</summary>
+
+### Multimodal Model Upgrade:
+- Added support for Mistral Small 3.1 24B Instruct (mistral-small3.1:24b-instruct-2503-fp16)
+- Enhanced vision capabilities for better image content extraction
+- Takes advantage of Mistral's 128k context window
+
+### Command-Line Version Improvements:
+- Added intermediate saving feature to preserve progress every 5 images
+- Enhanced console output with progress indicators
+- Better error handling and recovery
+- Compatible with Ollama v0.6.5+ for local model inference
+
+### Usage:
+```bash
+# Use Conda environment for dependencies
+conda activate ollama
+
+# Run the script
+python src/pdf2mdv2.py
+```
+</details>
+
+<details>
 <summary>Update 4th February 2025 - Memory Management Improvements</summary>
 
 ### Memory Management Improvements:
